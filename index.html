@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>@storybook/core - Storybook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+    
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    
+    <style>
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-regular.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-italic.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-bold.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: italic;
+        font-weight: 700;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-bold-italic.woff2') format('woff2');
+      }
+    </style>
+
+    <link href="./sb-manager/runtime.js" rel="modulepreload" />
+
+    
+    <link href="./sb-addons/storybook-core-core-server-presets-0/common-manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/docs-1/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-controls-2/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-actions-3/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-backgrounds-4/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-viewport-5/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-toolbars-6/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-measure-7/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/essentials-outline-8/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/links-9/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/a11y-10/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/storybook-11/manager-bundle.js" rel="modulepreload" />
+      
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            (function() {
+                const COOKIE_NAME = 'storybook_auth';
+                const EXPIRE_DAYS = 30;
+                const FIREBASE_CONFIG = {"production":{"apiKey":"AIzaSyBB9ct8VnzE50IblEl0CtGWsJ6Cey33KeY"},"development":{"apiKey":"AIzaSyBG5GVsLvcfWAM_yI7DtBQrtpR3tozSXXQ"},"testing":{"apiKey":"AIzaSyACwKOlee2CF1clSM_XY91aILbROAMh9E0"}};
+
+                function getFirebaseApiKey() {
+                    const hostname = window.location.hostname;
+                    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                        return FIREBASE_CONFIG.development.apiKey;
+                    }
+                    if (hostname.includes('staging')) {
+                        return FIREBASE_CONFIG.development.apiKey;
+                    }
+                    if (hostname.includes('testing')) {
+                        return FIREBASE_CONFIG.testing.apiKey;
+                    }
+                    return FIREBASE_CONFIG.production.apiKey;
+                }
+
+                function setCookie(name, value, days) {
+                    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+                    document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + expires + ';path=/;SameSite=Strict';
+                }
+
+                function getCookie(name) {
+                    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                    return match ? decodeURIComponent(match[2]) : null;
+                }
+
+                function isAuthenticated() {
+                    try {
+                        const authCookie = getCookie(COOKIE_NAME);
+                        if (!authCookie) return false;
+                        const auth = JSON.parse(authCookie);
+                        return auth.authenticated === true;
+                    } catch {
+                        return false;
+                    }
+                }
+
+                async function firebaseSignIn(email, password) {
+                    const url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + getFirebaseApiKey();
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error?.message || 'Authentication failed');
+                    }
+                    return data;
+                }
+
+                function showLoginForm() {
+                    document.body.innerHTML = '';
+                    document.body.className = 'min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-200 p-4 m-0';
+
+                    const container = document.createElement('div');
+                    container.innerHTML = `
+    <div class="w-full max-w-[90%] sm:max-w-md">
+        <div class="bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-zinc-900/5 p-6 sm:p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                
+                <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900 mb-1">Welcome back</h1>
+                <p class="text-sm text-zinc-500">Sign in to access CX Design System</p>
+            </div>
+
+            <!-- Error Message -->
+            <div class="p-3 text-sm bg-red-50 border border-red-200 rounded-lg text-red-600 mb-6 items-center gap-2" id="loginError" style="display: none;">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="loginErrorText"></span>
+            </div>
+
+            <!-- Form -->
+            <form id="loginForm" class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-medium text-zinc-700" for="email">Email address</label>
+                    <input
+                        class="w-full h-9 px-4 text-sm bg-zinc-50 border border-zinc-200 rounded-lg outline-none transition-all focus:bg-white focus:border-zinc-400 focus:ring-4 focus:ring-zinc-900/5 placeholder:text-zinc-400"
+                        type="email"
+                        id="email"
+                        placeholder="name@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-medium text-zinc-700" for="password">Password</label>
+                    <input
+                        class="w-full h-9 px-4 text-sm bg-zinc-50 border border-zinc-200 rounded-lg outline-none transition-all focus:bg-white focus:border-zinc-400 focus:ring-4 focus:ring-zinc-900/5 placeholder:text-zinc-400"
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+                <button
+                    type="submit"
+                    class="w-full h-11 text-sm font-medium bg-zinc-900 text-white rounded-lg cursor-pointer transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2"
+                    id="submitBtn"
+                >
+                    <span id="submitBtnText">Sign in</span>
+                    <svg class="w-4 h-4 hidden animate-spin" id="submitSpinner" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <p class="text-center text-xs text-zinc-400 mt-4">Protected access for authorized users only</p>
+        </div>
+    </div>
+`;
+                    document.body.appendChild(container);
+
+                    const form = document.getElementById('loginForm');
+                    const emailInput = document.getElementById('email');
+                    const passwordInput = document.getElementById('password');
+                    const errorEl = document.getElementById('loginError');
+                    const submitBtn = document.getElementById('submitBtn');
+
+                    const errorTextEl = document.getElementById('loginErrorText');
+                    const submitBtnText = document.getElementById('submitBtnText');
+                    const submitSpinner = document.getElementById('submitSpinner');
+
+                    function isValidEmail(email) {
+                        const lowerEmail = email.toLowerCase();
+                        return lowerEmail.includes('culturex') || lowerEmail.includes('creatorx');
+                    }
+
+                    function showError(message) {
+                        errorTextEl.textContent = message;
+                        errorEl.style.display = 'flex';
+                    }
+
+                    function hideError() {
+                        errorEl.style.display = 'none';
+                    }
+
+                    function setLoading(loading) {
+                        submitBtn.disabled = loading;
+                        submitBtnText.textContent = loading ? 'Signing in...' : 'Sign in';
+                        submitSpinner.classList.toggle('hidden', !loading);
+                    }
+
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        const email = emailInput.value;
+                        const password = passwordInput.value;
+
+                        hideError();
+
+                        if (!isValidEmail(email)) {
+                            showError('Access restricted to culturex and creatorx emails only');
+                            return;
+                        }
+
+                        setLoading(true);
+
+                        try {
+                            const authData = await firebaseSignIn(email, password);
+                            setCookie(COOKIE_NAME, JSON.stringify({
+                                authenticated: true,
+                                email: authData.email,
+                                uid: authData.localId
+                            }), EXPIRE_DAYS);
+                            window.location.reload();
+                        } catch (err) {
+                            let message = 'Invalid email or password';
+                            if (err.message.includes('EMAIL_NOT_FOUND')) {
+                                message = 'Email not found';
+                            } else if (err.message.includes('INVALID_PASSWORD') || err.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+                                message = 'Invalid password';
+                            } else if (err.message.includes('TOO_MANY_ATTEMPTS')) {
+                                message = 'Too many attempts. Try later.';
+                            }
+                            showError(message);
+                            setLoading(false);
+                        }
+                    });
+                }
+
+                if (!isAuthenticated()) {
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', showLoginForm);
+                    } else {
+                        showLoginForm();
+                    }
+                }
+            })();
+        </script>
+     
+
+    <style>
+      #storybook-root[hidden] {
+        display: none !important;
+      }
+    </style>
+
+    
+  </head>
+  <body>
+    <div id="root"></div>
+
+    
+    <script>
+      
+        
+          window['FEATURES'] = {
+  "argTypeTargetsV7": true,
+  "legacyDecoratorFileOrder": false,
+  "disallowImplicitActionsInRenderV8": true
+};
+        
+      
+        
+          window['REFS'] = {};
+        
+      
+        
+          window['LOGLEVEL'] = "info";
+        
+      
+        
+          window['DOCS_OPTIONS'] = {
+  "defaultName": "Docs",
+  "autodocs": "tag"
+};
+        
+      
+        
+          window['CONFIG_TYPE'] = "PRODUCTION";
+        
+      
+        
+      
+        
+      
+        
+          window['TAGS_OPTIONS'] = {
+  "dev-only": {
+    "excludeFromDocsStories": true
+  },
+  "docs-only": {
+    "excludeFromSidebar": true
+  },
+  "test-only": {
+    "excludeFromSidebar": true,
+    "excludeFromDocsStories": true
+  }
+};
+        
+      
+        
+          window['STORYBOOK_RENDERER'] = "react";
+        
+      
+        
+          window['STORYBOOK_BUILDER'] = "@storybook/builder-vite";
+        
+      
+        
+          window['STORYBOOK_FRAMEWORK'] = "@storybook/react-vite";
+        
+      
+    </script>
+    
+
+    <script type="module">
+      import './sb-manager/globals-runtime.js';
+      
+      
+        import './sb-addons/storybook-core-core-server-presets-0/common-manager-bundle.js';
+      
+        import './sb-addons/docs-1/manager-bundle.js';
+      
+        import './sb-addons/essentials-controls-2/manager-bundle.js';
+      
+        import './sb-addons/essentials-actions-3/manager-bundle.js';
+      
+        import './sb-addons/essentials-backgrounds-4/manager-bundle.js';
+      
+        import './sb-addons/essentials-viewport-5/manager-bundle.js';
+      
+        import './sb-addons/essentials-toolbars-6/manager-bundle.js';
+      
+        import './sb-addons/essentials-measure-7/manager-bundle.js';
+      
+        import './sb-addons/essentials-outline-8/manager-bundle.js';
+      
+        import './sb-addons/links-9/manager-bundle.js';
+      
+        import './sb-addons/a11y-10/manager-bundle.js';
+      
+        import './sb-addons/storybook-11/manager-bundle.js';
+      
+      
+      import './sb-manager/runtime.js';
+    </script>
+  </body>
+</html>
